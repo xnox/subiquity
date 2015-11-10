@@ -85,9 +85,9 @@ class FilesystemModel(ModelPolicy):
         # ('Connect Ceph network disk',
         #  'filesystem:connect-ceph-disk',
         #  'connect_ceph_disk'),
-        # ('Create volume group (LVM2)',
-        #  'filesystem:create-volume-group',
-        #  'create_volume_group'),
+        ('Create volume group (LVM2)',
+         base_signal + ':create-volume-group',
+         'create_pv'),
         ('Create software RAID (MD)',
          base_signal + ':create-raid',
          'create_raid'),
@@ -128,6 +128,7 @@ class FilesystemModel(ModelPolicy):
         self.info = {}
         self.devices = {}
         self.raid_devices = {}
+        self.lvm_spec = {}
         self.storage = {}
 
     def reset(self):

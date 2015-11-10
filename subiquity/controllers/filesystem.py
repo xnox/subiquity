@@ -15,14 +15,15 @@
 
 import logging
 import os
+import uuid
 from subiquity.controller import ControllerPolicy
 from subiquity.models.actions import preserve_action
 from subiquity.models import (FilesystemModel,
-                              RaidModel)
+                              RaidModel, LVMModel, VolumeGroup)
 from subiquity.models.filesystem import (_humanize_size)
 from subiquity.ui.views import (DiskPartitionView, AddPartitionView,
                                 AddFormatView, FilesystemView,
-                                DiskInfoView, RaidView)
+                                DiskInfoView, RaidView, LVMView)
 from subiquity.ui.dummy import DummyView
 from subiquity.ui.error import ErrorView
 from subiquity.curtin import (curtin_write_storage_actions,
@@ -39,9 +40,10 @@ class FilesystemController(ControllerPolicy):
     def __init__(self, common):
         super().__init__(common)
         self.model = FilesystemModel(self.prober, self.opts)
-        #self.iscsi_model = IscsiDiskModel()
-        #self.ceph_model = CephDiskModel()
+        # self.iscsi_model = IscsiDiskModel()
+        # self.ceph_model = CephDiskModel()
         self.raid_model = RaidModel()
+        self.lvm_model = LVMModel()
 
     def filesystem(self, reset=False):
         # FIXME: Is this the best way to zero out this list for a reset?
@@ -71,7 +73,7 @@ class FilesystemController(ControllerPolicy):
         log.info("Rendering curtin config from user choices")
         try:
             curtin_write_storage_actions(actions=actions)
-        except PermissionError:
+        except PermissionError:  # noqa
             log.exception('Failed to write storage actions')
             self.signal.emit_signal('filesystem:error',
                                     'curtin_write_storage_actions')
@@ -81,7 +83,7 @@ class FilesystemController(ControllerPolicy):
         preserved_actions = [preserve_action(a) for a in actions]
         try:
             curtin_write_preserved_actions(actions=preserved_actions)
-        except PermissionError:
+        except PermissionError:  # noqa
             log.exception('Failed to write preserved actions')
             self.signal.emit_signal('filesystem:error',
                                     'curtin_write_preserved_actions')
@@ -206,8 +208,17 @@ class FilesystemController(ControllerPolicy):
         #                               self.signal))
         self.ui.set_body(DummyView(self.signal))
 
-    def create_volume_group(self, *args, **kwargs):
-        self.ui.set_body(DummyView(self.signal))
+    def create_pv(self, *args, **kwargs):
+        title = ("Select Physical Volumes")
+        excerpt = ("Use SPACE to select disks to create your Physical Volumes,"
+                   " and then specify the Volume group parameters.")
+        self.ui.set_header(title, excerpt)
+        self.ui.set_body(LVMView(self.model,
+                                 self.signal))
+
+    def create_vg(self, devices):
+        vg = VolumeGroup('vg_{}'.format(str(uuid.uuid4())), devices)
+        self.signal.emit_signal('lvm:create-lv', vg)
 
     def create_raid(self, *args, **kwargs):
         title = ("Create software RAID (\"MD\") disk")
@@ -276,7 +287,7 @@ class FilesystemController(ControllerPolicy):
             dev = os.path.basename(devpath)
             rfile = '/sys/class/block/{}/queue/rotational'.format(dev)
             rotational = open(rfile, 'r').read().strip()
-        except (PermissionError, FileNotFoundError, IOError):
+        except (PermissionError, FileNotFoundError, IOError):  # noqa
             log.exception('WARNING: Failed to read file {}'.format(rfile))
             pass
 
