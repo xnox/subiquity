@@ -30,3 +30,4 @@ from .installpath import InstallpathView  # NOQA
 from .installprogress import ProgressView  # NOQA
 from .welcome import WelcomeView  # NOQA
 from .identity import IdentityView  # NOQA
+from .lvm import LVMView  # NOQA

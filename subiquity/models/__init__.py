@@ -22,3 +22,4 @@ from .installprogress import InstallProgressModel  # NOQA
 from .iscsi_disk import IscsiDiskModel  # NOQA
 from .raid import RaidModel  # NOQA
 from .ceph_disk import CephDiskModel  # NOQA
+from .lvm import (LVMModel, VolumeGroup)  # NOQA
