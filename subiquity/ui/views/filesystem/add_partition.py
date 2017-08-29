@@ -51,10 +51,11 @@ class FSTypeField(FormField):
 
 class AddPartitionForm(Form):
 
-    def __init__(self, model, disk):
+    def __init__(self, model, disk, size_limit):
         self.model = model
         self.disk = disk
-        self.size_str = humanize_size(disk.free)
+        self.size_limit = size_limit
+        self.size_str = humanize_size(size_limit)
         super().__init__()
         self.size.caption = "Size (max {})".format(self.size_str)
         self.partnum.value = self.disk.next_partnum
@@ -81,7 +82,7 @@ class AddPartitionForm(Form):
             sz = dehumanize_size(v)
         except ValueError as v:
             return str(v)
-        if sz > self.disk.free:
+        if sz > self.size_limit:
             self.size.value = self.size_str
             self.size.show_extra(Color.info_minor(Text("Capped partition size at %s"%(self.size_str,), align="center")))
 
@@ -98,10 +99,14 @@ class AddPartitionView(BaseView):
         self.disk = disk
         self.part = part
 
-        self.form = AddPartitionForm(model, self.disk)
+        self.size_limit = self.disk.free
         if part is not None:
-            self.form.partnum = part.number
-            self.form.size = humanize_size(part.size)
+            self.size_limit += part.size
+
+        self.form = AddPartitionForm(model, self.disk, self.size_limit)
+        if part is not None:
+            self.form.partnum.value = part.number
+            self.form.size.value = humanize_size(part.size)
             fs = part.fs()
             mount = None
             if fs is not None:
@@ -113,7 +118,7 @@ class AddPartitionView(BaseView):
                 if x[0] == label:
                     self.form.fstype.value = x[2]
                     if x[2].is_mounted:
-                        self.model.mount = mount
+                        self.model.mount.value = mount
 
         connect_signal(self.form, 'submit', self.done)
         connect_signal(self.form, 'cancel', self.cancel)
@@ -140,10 +145,10 @@ class AddPartitionView(BaseView):
 
         if self.form.size.value:
             size = dehumanize_size(self.form.size.value)
-            if size > self.disk.free:
-                size = self.disk.free
+            if size > self.size_limit:
+                size = self.size_limit
         else:
-            size = self.disk.free
+            size = self.size_limit
 
         result = {
             "partnum": self.form.partnum.value,
@@ -156,3 +161,5 @@ class AddPartitionView(BaseView):
         log.debug("Add Partition Result: {}".format(result))
         if self.part is None:
             self.controller.add_disk_partition_handler(self.disk, result)
+        else:
+            self.controller.update_partition(self.part, result)

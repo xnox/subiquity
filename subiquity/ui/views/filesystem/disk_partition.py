@@ -70,30 +70,35 @@ class DiskPartitionView(BaseView):
             part_btn = menu_btn(label)
             connect_signal(part_btn, 'click', self._click_part, part)
             return Columns([
-                (15, Color.menu_button(part_btn)),
-                Text(size),
+                (25, Color.menu_button(part_btn)),
+                (9, Text(size, align="right")),
                 Text(fstype),
                 Text(mountpoint),
-            ], 4)
+            ], 2)
         if self.disk.fs() is not None:
             partitioned_disks.append(format_volume("entire disk", self.disk))
         else:
             for part in self.disk.partitions():
-                partitioned_disks.append(format_volume("partition {}".format(part.number), part))
+                partitioned_disks.append(format_volume("Partition {}".format(part.number), part))
         if self.disk.free > 0:
             free_space = humanize_size(self.disk.free)
+            if len(self.disk.partitions()) > 0:
+                label = "Add another partition"
+            else:
+                label = "Add first partition"
+            add_btn = menu_btn(label)
+            connect_signal(add_btn, 'click', self.add_partition)
             partitioned_disks.append(Columns([
-                (15, Text("FREE SPACE")),
-                Text(free_space),
-                Text(""),
-                Text("")
-            ], 4))
+                (25, Color.menu_button(add_btn)),
+                (9, Text(free_space, align="right")),
+                Text("free space"),
+            ], 2))
 
         return BoxAdapter(SimpleList(partitioned_disks),
                           height=len(partitioned_disks))
 
     def _click_part(self, sender, part):
-        self.controller.edit_part(part)
+        self.controller.edit_disk_partition(self.disk, part)
 
     def _build_menu(self):
         """

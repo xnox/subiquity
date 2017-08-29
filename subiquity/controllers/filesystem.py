@@ -129,6 +129,30 @@ class FilesystemController(BaseController):
         adp_view = AddPartitionView(self.model, self, disk)
         self.ui.set_body(adp_view)
 
+    def edit_disk_partition(self, disk, part):
+        log.debug("Adding partition to {}".format(disk))
+        footer = ("Select whole disk, or partition, to format and mount.")
+        self.ui.set_footer(footer)
+        adp_view = AddPartitionView(self.model, self, disk, part)
+        self.ui.set_body(adp_view)
+
+    def update_partition(self, part, spec):
+        part.number = spec['partnum']
+        part.size = spec['bytes']
+        old_fs = part.fs()
+        if old_fs is not None:
+            self.model._filesystems.remove(old_fs)
+            part._fs = None
+            mount = old_fs.mount()
+            if mount is not None:
+                old_fs._mount = None
+                self.model._mounts.remove(mount)
+        if spec['fstype'] is not None:
+            fs = self.model.add_filesystem(part, spec['fstype'])
+            if spec['mountpoint']:
+              self.model.add_mount(fs, spec['mountpoint'])
+        self.partition_disk(part.device)
+
     def add_disk_partition_handler(self, disk, spec):
         log.debug('spec: {}'.format(spec))
         log.debug('disk.freespace: {}'.format(disk.free))
