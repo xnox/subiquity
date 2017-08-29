@@ -147,7 +147,12 @@ class Disk:
 
     @property
     def next_partnum(self):
-        return len(self._partitions) + 1
+        partnums = set()
+        for p in self._partitions:
+            partnums.add(p.number)
+        for i in range(1, 1000):
+            if i not in partnums:
+                return i
 
     @property
     def size(self):
@@ -373,10 +378,6 @@ class FilesystemModel(object):
         # /usr/include/linux/limits.h:PATH_MAX
         if len(mountpoint) > 4095:
             return 'Path exceeds PATH_MAX'
-        mnts = self.get_mountpoint_to_devpath_mapping()
-        dev = mnts.get(mountpoint)
-        if dev is not None:
-            return "%s is already mounted at %s"%(dev, mountpoint)
 
     def bootable(self):
         ''' true if one disk has a boot partition '''

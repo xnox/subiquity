@@ -52,8 +52,9 @@ class FSTypeField(FormField):
 
 class AddPartitionForm(Form):
 
-    def __init__(self, model, disk, size_limit):
+    def __init__(self, model, disk, size_limit, mountpoint_to_devpath_mapping):
         self.model = model
+        self.mountpoint_to_devpath_mapping = mountpoint_to_devpath_mapping
         self.disk = disk
         self.size_limit = size_limit
         self.size_str = humanize_size(size_limit)
@@ -88,7 +89,14 @@ class AddPartitionForm(Form):
             self.size.show_extra(Color.info_minor(Text("Capped partition size at %s"%(self.size_str,), align="center")))
 
     def validate_mount(self):
-        return self.model.validate_mount(self.mount.value)
+        mountpoint = self.mount.value
+        v = self.model.validate_mount(self.mount.value)
+        if v:
+            return v
+        mnts = self.mountpoint_to_devpath_mapping
+        dev = mnts.get(mountpoint)
+        if dev is not None:
+            return "%s is already mounted at %s"%(dev, mountpoint)
 
 
 class AddPartitionView(BaseView):
@@ -100,26 +108,34 @@ class AddPartitionView(BaseView):
         self.disk = disk
         self.part = part
 
+        mountpoint_to_devpath_mapping = model.get_mountpoint_to_devpath_mapping()
+
         self.size_limit = self.disk.free
         if part is not None:
             self.size_limit += part.size
+            fs = part.fs()
+            if fs is not None:
+                mount = fs.mount()
+                if mount is not None:
+                    del mountpoint_to_devpath_mapping[mount.path]
 
-        self.form = AddPartitionForm(model, self.disk, self.size_limit)
+        self.form = AddPartitionForm(model, self.disk, self.size_limit, mountpoint_to_devpath_mapping)
         if part is not None:
             self.form.partnum.value = part.number
             self.form.size.value = humanize_size(part.size)
             fs = part.fs()
             mount = None
             if fs is not None:
-                label = fs.type
+                label = fs.fstype
                 mount = fs.mount()
             else:
                 label = 'leave unformatted'
             for x in self.model.supported_filesystems:
+                log.debug("%s %s", x, label)
                 if x[0] == label:
                     self.form.fstype.value = x[2]
-                    if x[2].is_mounted:
-                        self.model.mount.value = mount
+                    if x[2].is_mounted and mount is not None:
+                        self.form.mount.value = mount.path
 
         connect_signal(self.form, 'submit', self.done)
         connect_signal(self.form, 'cancel', self.cancel)
