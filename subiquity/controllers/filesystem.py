@@ -153,6 +153,19 @@ class FilesystemController(BaseController):
               self.model.add_mount(fs, spec['mountpoint'])
         self.partition_disk(part.device)
 
+    def delete_partition(self, part):
+        old_fs = part.fs()
+        if old_fs is not None:
+            self.model._filesystems.remove(old_fs)
+            part._fs = None
+            mount = old_fs.mount()
+            if mount is not None:
+                old_fs._mount = None
+                self.model._mounts.remove(mount)
+        part.device.partitions().remove(part)
+        self.model._partitions.remove(part)
+        self.partition_disk(part.device)
+
     def add_disk_partition_handler(self, disk, spec):
         log.debug('spec: {}'.format(spec))
         log.debug('disk.freespace: {}'.format(disk.free))

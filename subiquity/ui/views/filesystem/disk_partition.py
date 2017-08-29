@@ -37,7 +37,7 @@ class DiskPartitionView(BaseView):
         self.body = [
             Padding.center_79(self._build_model_inputs()),
             Padding.line_break(""),
-            Padding.center_79(self._build_menu()),
+            Padding.center_79(self.show_disk_info_w()),
             Padding.line_break(""),
             Padding.fixed_10(self._build_buttons()),
         ]
@@ -93,25 +93,19 @@ class DiskPartitionView(BaseView):
                 (9, Text(free_space, align="right")),
                 Text("free space"),
             ], 2))
+        if len(self.disk.partitions()) == 0 and \
+           self.disk.available:
+            text = ("Format or create swap on entire "
+                    "device (unusual, advanced)")
+            partitioned_disks.append(Text(""))
+            partitioned_disks.append(Color.menu_button(
+                menu_btn(label=text, on_press=self.format_entire)))
 
         return BoxAdapter(SimpleList(partitioned_disks),
                           height=len(partitioned_disks))
 
     def _click_part(self, sender, part):
         self.controller.edit_disk_partition(self.disk, part)
-
-    def _build_menu(self):
-        """
-        Builds the add partition menu with user visible
-        changes to the button depending on if existing
-        partitions exist or not.
-        """
-        menus = [
-            self.add_partition_w(),
-            self.create_swap_w(),
-            self.show_disk_info_w(),
-        ]
-        return Pile([m for m in menus if m])
 
     def show_disk_info_w(self):
         """ Runs hdparm against device and displays its output
@@ -121,32 +115,6 @@ class DiskPartitionView(BaseView):
             menu_btn(
                 label=text,
                 on_press=self.show_disk_info))
-
-    def create_swap_w(self):
-        """ Handles presenting an enabled create swap on
-        entire device button if no partition exists, otherwise
-        it is disabled.
-        """
-        text = ("Format or create swap on entire "
-                "device (unusual, advanced)")
-        if len(self.disk.partitions()) == 0 and \
-           self.disk.available:
-            return Color.menu_button(
-                menu_btn(label=text, on_press=self.format_entire))
-
-    def add_partition_w(self):
-        """ Handles presenting the add partition widget button
-        depending on if partitions exist already or not.
-        """
-        if not self.disk.available:
-            return None
-        text = "Add first partition"
-        if len(self.disk.partitions()) > 0:
-            text = "Add partition (max size {})".format(
-                humanize_size(self.disk.free))
-
-        return Color.menu_button(
-            menu_btn(label=text, on_press=self.add_partition))
 
     def show_disk_info(self, result):
         self.controller.show_disk_information(self.disk)
