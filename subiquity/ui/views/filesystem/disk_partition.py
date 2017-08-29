@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from urwid import BoxAdapter, Text
+from urwid import BoxAdapter, connect_signal, Text
 
 from subiquitycore.ui.lists import SimpleList
 from subiquitycore.ui.buttons import done_btn, cancel_btn, menu_btn
@@ -67,8 +67,10 @@ class DiskPartitionView(BaseView):
             else:
                 fstype = part.fs().fstype
                 mountpoint = part.fs().mount().path
+            part_btn = menu_btn(label)
+            connect_signal(part_btn, 'click', self._click_part, part)
             return Columns([
-                (15, Text(label)),
+                (15, Color.menu_button(part_btn)),
                 Text(size),
                 Text(fstype),
                 Text(mountpoint),
@@ -87,8 +89,11 @@ class DiskPartitionView(BaseView):
                 Text("")
             ], 4))
 
-        return BoxAdapter(SimpleList(partitioned_disks, is_selectable=False),
+        return BoxAdapter(SimpleList(partitioned_disks),
                           height=len(partitioned_disks))
+
+    def _click_part(self, sender, part):
+        self.controller.edit_part(part)
 
     def _build_menu(self):
         """

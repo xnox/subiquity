@@ -83,6 +83,17 @@ class MountSelector(WidgetWrap):
         else:
             return self._selector.value
 
+    @value.setter
+    def value(self, val):
+        if val is None:
+            self._selector.value = LEAVE_UNMOUNTED
+        elif val in common_mountpoints:
+            self._selector.value = val
+        else:
+            self._select_mount(OTHER)
+            self._selector.value = OTHER
+            self._other.value = val
+
 
 class MountField(FormField):
 

@@ -91,13 +91,29 @@ class AddPartitionForm(Form):
 
 class AddPartitionView(BaseView):
 
-    def __init__(self, model, controller, disk):
+    def __init__(self, model, controller, disk, part=None):
         log.debug('AddPartitionView: selected_disk=[{}]'.format(disk.path))
         self.model = model
         self.controller = controller
         self.disk = disk
+        self.part = part
 
         self.form = AddPartitionForm(model, self.disk)
+        if part is not None:
+            self.form.partnum = part.number
+            self.form.size = humanize_size(part.size)
+            fs = part.fs()
+            mount = None
+            if fs is not None:
+                label = fs.type
+                mount = fs.mount()
+            else:
+                label = 'leave unformatted'
+            for x in self.model.supported_filesystems:
+                if x[0] == label:
+                    self.form.fstype.value = x[2]
+                    if x[2].is_mounted:
+                        self.model.mount = mount
 
         connect_signal(self.form, 'submit', self.done)
         connect_signal(self.form, 'cancel', self.cancel)
@@ -138,4 +154,5 @@ class AddPartitionView(BaseView):
         }
 
         log.debug("Add Partition Result: {}".format(result))
-        self.controller.add_disk_partition_handler(self.disk, result)
+        if self.part is None:
+            self.controller.add_disk_partition_handler(self.disk, result)
