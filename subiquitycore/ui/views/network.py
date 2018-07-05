@@ -44,7 +44,10 @@ from subiquitycore.ui.utils import (
     make_action_menu_row,
     Padding,
     )
-from .network_configure_manual_interface import EditNetworkStretchy, AddVlanStretchy
+from .network_configure_manual_interface import (
+    AddVlanStretchy,
+    EditNetworkStretchy,
+    )
 from .network_configure_wlan_interface import NetworkConfigureWLANStretchy
 
 from subiquitycore.view import BaseView
@@ -190,8 +193,8 @@ class NetworkView(BaseView):
                     for a in dev._net_info.addresses.values():
                         log.debug("a %s", a.serialize())
                         if a.family == fam and a.source == 'dhcp':
-                            addresses.append("{} (from dhcp)".format(
-                                a.address))
+                            addresses.append(
+                                "{} (from dhcp)".format(a.address))
             if addresses:
                 addresses = ", ".join(addresses)
             else:
@@ -230,8 +233,8 @@ class NetworkView(BaseView):
 
     def refresh_model_inputs(self):
         self.device_table.set_contents(self._build_model_inputs())
-        if isinstance(self._w, StretchyOverlay) and \
-           hasattr(self._w.stretchy, 'refresh_model_inputs'):
+        if isinstance(self._w, StretchyOverlay) and hasattr(
+                self._w.stretchy, 'refresh_model_inputs'):
             self._w.stretchy.refresh_model_inputs()
 
     def show_network_error(self, action, info=None):
