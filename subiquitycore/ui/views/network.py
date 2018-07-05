@@ -47,6 +47,7 @@ from subiquitycore.ui.utils import (
 from .network_configure_manual_interface import (
     AddVlanStretchy,
     EditNetworkStretchy,
+    ViewInterfaceInfo,
     )
 from .network_configure_wlan_interface import NetworkConfigureWLANStretchy
 
@@ -141,7 +142,7 @@ class NetworkView(BaseView):
         return button_pile([done, back])
 
     def _action_info(self, device):
-        pass
+        self.show_stretchy_overlay(ViewInterfaceInfo(self, device))
 
     def _action_edit_ipv4(self, device):
         self.show_stretchy_overlay(EditNetworkStretchy(self, device, 4))
