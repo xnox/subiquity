@@ -43,6 +43,7 @@ class Subiquity(Application):
             "Refresh",
             "Keyboard",
             "Installpath",
+            "Zdev",
             "Network",
             "Proxy",
             "Mirror",

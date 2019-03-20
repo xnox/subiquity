@@ -26,6 +26,7 @@ from .installpath import InstallpathView, MAASView
 from .installprogress import ProgressView
 from .keyboard import KeyboardView
 from .welcome import WelcomeView
+from .zdev import ZdevView
 __all__ = [
     'BcacheView',
     'CephDiskView',
@@ -39,4 +40,5 @@ __all__ = [
     'MAASView',
     'ProgressView',
     'WelcomeView',
+    'ZdevView',
 ]

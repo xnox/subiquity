@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+import glob
 import os
 import sys
 import uuid
@@ -32,6 +33,7 @@ from .proxy import ProxyModel
 from .mirror import MirrorModel
 from .snaplist import SnapListModel
 from .ssh import SSHModel
+from .zdev import ZdevModel
 
 
 def setup_yaml():
@@ -80,6 +82,7 @@ class SubiquityModel:
         self.mirror = MirrorModel()
         self.snaplist = SnapListModel()
         self.ssh = SSHModel()
+        self.zdev = ZdevModel()
 
     def get_target_groups(self):
         command = ['chroot', self.target, 'getent', 'group']
@@ -241,6 +244,13 @@ class SubiquityModel:
                     },
                 },
             }
+
+        zdev_rules = glob.glob('/etc/udev/rules.d/41-*')
+        if zdev_rules:
+            config['curthooks_commands']['0003-copy-zdev'] = \
+                ['cp', '-r'] + \
+                zdev_rules + \
+                [os.path.join(self.target, 'etc', 'udev', 'rules.d')]
 
         mp_file = os.path.join(self.root, "run/kernel-meta-package")
         if os.path.exists(mp_file):
