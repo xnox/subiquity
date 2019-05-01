@@ -56,10 +56,10 @@ class ZdevList(WidgetWrap):
     def __init__(self, parent):
         self.parent = parent
         self.table = TablePile([], spacing=2, colspecs={
-            0: ColSpec(rpad=1),
-            1: ColSpec(rpad=1),
-            2: ColSpec(rpad=1),
-            3: ColSpec(rpad=1),
+            0: ColSpec(rpad=2),
+            1: ColSpec(rpad=2),
+            2: ColSpec(rpad=2),
+            3: ColSpec(rpad=2),
         })
         self._no_zdev_content = Color.info_minor(
             Text(_("No zdev devices found.")))
