@@ -66,6 +66,9 @@ def parse_options(argv):
     parser.add_argument('--uefi', action='store_true',
                         dest='uefi',
                         help='run in uefi support mode')
+    parser.add_argument('--s390x', action='store_true',
+                        dest='s390x',
+                        help='run in IBM Z support mode')
     parser.add_argument('--screens', action='append', dest='screens',
                         default=[])
     parser.add_argument('--script', metavar="SCRIPT", action='append',

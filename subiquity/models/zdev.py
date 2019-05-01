@@ -17,6 +17,7 @@ import logging
 
 log = logging.getLogger('subiquity.models.zdev')
 
+
 class ZdevModel(object):
 
     def __init__(self):

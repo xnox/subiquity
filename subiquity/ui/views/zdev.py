@@ -19,9 +19,6 @@ Provides device activation and configuration on s390x
 
 """
 import logging
-import shlex
-
-import attr
 
 from urwid import (
     connect_signal,
@@ -29,92 +26,29 @@ from urwid import (
     )
 
 from subiquitycore.ui.actionmenu import (
-    Action,
     ActionMenu,
-    ActionMenuOpenButton,
     )
 from subiquitycore.ui.buttons import (
     back_btn,
-    cancel_btn,
-    danger_btn,
     done_btn,
-    menu_btn,
-    other_btn,
-    reset_btn,
     )
 from subiquitycore.ui.container import (
     ListBox,
     WidgetWrap,
     )
-from subiquitycore.ui.form import Toggleable
-from subiquitycore.ui.stretchy import Stretchy
 from subiquitycore.ui.table import (
     ColSpec,
     TablePile,
     TableRow,
     )
 from subiquitycore.ui.utils import (
-    button_pile,
     Color,
     make_action_menu_row,
-    Padding,
     screen,
     )
 from subiquitycore.view import BaseView
 
-from subiquitycore.utils import run_command
-
 log = logging.getLogger('subiquity.ui.zdev')
-
-lszdev_cmd = ['lszdev', '--pairs', '--columns',
-              'id,type,on,exists,pers,auto,failed,names']
-lszdev_stock = '''id="0.0.0190" type="dasd-eckd" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.0191" type="dasd-eckd" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.019d" type="dasd-eckd" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.019e" type="dasd-eckd" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.0200" type="dasd-eckd" on="yes" exists="yes" pers="yes" auto="no" failed="no" names="dasda"
-id="0.0.0300" type="dasd-eckd" on="yes" exists="yes" pers="yes" auto="no" failed="no" names="dasdb"
-id="0.0.0592" type="dasd-eckd" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.0600:0.0.0601:0.0.0602" type="qeth" on="yes" exists="yes" pers="yes" auto="no" failed="no" names="enc600"
-id="0.0.0603:0.0.0604:0.0.0605" type="qeth" on="no" exists="yes" pers="yes" auto="no" failed="yes" names="enc603"
-id="0.0.0606:0.0.0607:0.0.0608" type="qeth" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.d000:0.0.d001:0.0.d002" type="qeth" on="yes" exists="yes" pers="yes" auto="no" failed="no" names="encd000"
-id="0.0.d003:0.0.d004:0.0.d005" type="qeth" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.0009" type="generic-ccw" on="yes" exists="yes" pers="yes" auto="no" failed="no" names=""
-id="0.0.000c" type="generic-ccw" on="no" exists="yes" pers="no" auto="no" failed="no" names=""
-id="0.0.000d" type="generic-ccw" on="yes" exists="yes" pers="yes" auto="no" failed="no" names="vmpun-0.0.000d"
-id="0.0.000e" type="generic-ccw" on="yes" exists="yes" pers="no" auto="yes" failed="no" names="vmprt-0.0.000e"'''
-
-@attr.s
-class ZdevInfo:
-    id = attr.ib()
-    type = attr.ib()
-    on = attr.ib()
-    exists = attr.ib()
-    pers = attr.ib()
-    auto = attr.ib()
-    failed = attr.ib()
-    names = attr.ib()
-
-    @classmethod
-    def from_row(cls, row):
-        row = dict((k.split('=', 1) for k in shlex.split(row)))
-        for k,v in row.items():
-            if v == "yes":
-                row[k] = True
-            if v == "no":
-                row[k] = False
-        return ZdevInfo(**row)
-
-    @property
-    def status(self):
-        if self.failed:
-            return Color.info_error(Text(_("failed"), align="center"))
-        if self.auto and self.on:
-            return Color.info_minor(Text(_("auto"), align="center"))
-        if self.pers and self.on:
-            return Text(_("online"), align="center")
-        return Text("", align="center")
 
 
 class ZdevList(WidgetWrap):
@@ -137,10 +71,7 @@ class ZdevList(WidgetWrap):
             self.parent.refresh_model_inputs()
 
     def refresh_model_inputs(self):
-        devices = run_command(lszdev_cmd, universal_newlines=True).stdout
-        devices = devices.splitlines()
-        #devices = lszdev_stock.splitlines()
-        zdevinfos = [ZdevInfo.from_row(row) for row in devices]
+        zdevinfos = self.parent.controller.get_zdevinfos()
 
         rows = [TableRow([
             Color.info_minor(heading) for heading in [
