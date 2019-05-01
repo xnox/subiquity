@@ -137,7 +137,6 @@ class ZdevView(BaseView):
 
     def refresh_model_inputs(self):
         self.zdev_list.refresh_model_inputs()
-        self.lb.base_widget._select_first_selectable()
 
     def cancel(self, button=None):
         self.controller.cancel()
