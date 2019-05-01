@@ -111,11 +111,9 @@ class ZdevView(BaseView):
     title = _("Zdev setup")
     footer = _("Activate and configure Z devices")
 
-    def __init__(self, model, controller):
+    def __init__(self, controller):
         log.debug('FileSystemView init start()')
-        self.model = model
         self.controller = controller
-
         self.zdev_list = ZdevList(self)
 
         body = [
@@ -129,7 +127,7 @@ class ZdevView(BaseView):
             focus_buttons=True)
         super().__init__(frame)
         self.refresh_model_inputs()
-        log.debug('FileSystemView init complete()')
+        log.debug('ZdevView init complete()')
 
     def _build_buttons(self):
         return [

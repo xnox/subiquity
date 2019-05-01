@@ -86,7 +86,6 @@ class ZdevController(BaseController):
 
     def __init__(self, common):
         super().__init__(common)
-        self.model = self.base_model.zdev
         self.answers = self.all_answers.get('Zdev', {})
         if self.opts.dry_run:
             if platform.machine() == 's390x':
@@ -99,7 +98,7 @@ class ZdevController(BaseController):
     def default(self):
         if 'accept-default' in self.answers:
             self.done()
-        self.ui.set_body(ZdevView(self.model, self))
+        self.ui.set_body(ZdevView(self))
 
     def cancel(self):
         self.signal.emit_signal('prev-screen')

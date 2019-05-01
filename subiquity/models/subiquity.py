@@ -32,7 +32,6 @@ from .proxy import ProxyModel
 from .mirror import MirrorModel
 from .snaplist import SnapListModel
 from .ssh import SSHModel
-from .zdev import ZdevModel
 
 
 def setup_yaml():
@@ -81,7 +80,6 @@ class SubiquityModel:
         self.mirror = MirrorModel()
         self.snaplist = SnapListModel()
         self.ssh = SSHModel()
-        self.zdev = ZdevModel()
 
     def get_target_groups(self):
         command = ['chroot', self.target, 'getent', 'group']
