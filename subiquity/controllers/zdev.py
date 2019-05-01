@@ -87,6 +87,7 @@ class ZdevController(BaseController):
     def __init__(self, common):
         super().__init__(common)
         self.model = self.base_model.zdev
+        self.answers = self.all_answers.get('Zdev', {})
         if self.opts.dry_run:
             if platform.machine() == 's390x':
                 devices = self.lszdev()
@@ -96,6 +97,8 @@ class ZdevController(BaseController):
             self.zdevinfos = OrderedDict([(i.id, i) for i in zdevinfos])
 
     def default(self):
+        if 'accept-default' in self.answers:
+            self.done()
         self.ui.set_body(ZdevView(self.model, self))
 
     def cancel(self):

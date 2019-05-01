@@ -6,6 +6,8 @@ Keyboard:
   layout: us
 Installpath:
   path: ubuntu
+Zdev:
+  accept-default: yes
 Network:
   accept-default: yes
 Proxy:
