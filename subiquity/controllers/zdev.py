@@ -89,10 +89,10 @@ class ZdevController(BaseController):
         self.answers = self.all_answers.get('Zdev', {})
         if self.opts.dry_run:
             if platform.machine() == 's390x':
-                devices = self.lszdev()
+                zdevinfos = self.lszdev()
             else:
                 devices = lszdev_stock.splitlines()
-            zdevinfos = [ZdevInfo.from_row(row) for row in devices]
+                zdevinfos = [ZdevInfo.from_row(row) for row in devices]
             self.zdevinfos = OrderedDict([(i.id, i) for i in zdevinfos])
 
     def default(self):
