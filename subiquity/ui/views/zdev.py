@@ -121,7 +121,7 @@ class ZdevView(BaseView):
             Text(""),
             ]
 
-        self.lb = ListBox(body)
+        self.lb = ListBox(body, always_scroll=True)
         frame = screen(
             self.lb, self._build_buttons(),
             focus_buttons=True)
