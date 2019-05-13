@@ -423,7 +423,7 @@ class ScrollBarListBox(urwid.WidgetDecoration):
     bg = urwid.SolidFill(" ")
     bot = urwid.SolidFill("\N{BLACK DOWN-POINTING SMALL TRIANGLE}")
 
-    def __init__(self, lb, *, always_scroll=True):
+    def __init__(self, lb, *, always_scroll=False):
         pile = Pile([
                 ('fixed',  1, self.top),
                 ('weight', 1, self.bg),
@@ -442,13 +442,13 @@ class ScrollBarListBox(urwid.WidgetDecoration):
 
     def keypress(self, size, key):
         lb = self.original_widget
-        if self._scroll(size, True):
+        if not self._scroll(size, True):
             size = (size[0]-1, size[1])
         return lb.keypress(size, key)
 
     def render(self, size, focus=False):
         lb = self.original_widget
-        if not self._scroll(size, focus):
+        if self._scroll(size, focus):
             return lb.render(size, focus)
         else:
             # This implementation assumes that the number of rows is
