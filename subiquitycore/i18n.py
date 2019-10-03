@@ -14,6 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import codecs
+import unicodedata
 import gettext
 import os
 import syslog
@@ -48,6 +50,22 @@ def switch_language(code='en_US'):
     import builtins
     builtins.__dict__['_'] = my_gettext
 
+def ascify(error):
+    ascii_map = {
+        '\N{BLACK RIGHT-POINTING SMALL TRIANGLE}' : '>',
+        '\N{BLACK LEFT-POINTING SMALL TRIANGLE}' : '<',
+        '\N{BLACK DOWN-POINTING SMALL TRIANGLE}' : 'v',
+        '\N{BLACK UP-POINTING SMALL TRIANGLE}' : '^',
+        '\N{check mark}' : '+',
+        '\N{bullet}' : '*',
+        '\N{lower half block}' : '=',
+        '\N{upper half block}' : '=',
+        #'\N{BOX DRAWINGS LIGHT HORIZONTAL}' : '\N{BOX DRAWINGS LIGHT HORIZONTAL}',
+        }
+    char = error.object[error.start]
+    return ascii_map.get(char,unicodedata.name(char)), error.start + 1
+
+codecs.register_error('ascify', ascify)
 
 switch_language()
 
