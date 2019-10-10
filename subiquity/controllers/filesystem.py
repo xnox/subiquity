@@ -125,7 +125,7 @@ class FilesystemController(BaseController):
 
     def start(self):
         urwid.connect_signal(
-            self.app, 'debug-shell-exited', self._maybe_reprobe_block)
+            self.app, 'maybe-reprobe-block', self._maybe_reprobe_block)
         self._start_probe(restricted=False)
 
     def _maybe_reprobe_block(self):

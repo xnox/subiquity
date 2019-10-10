@@ -46,7 +46,7 @@ installed system will be mounted at /target.""")
 
 class Subiquity(Application):
 
-    signals = ['debug-shell-exited']
+    signals = ['maybe-reprobe-block']
 
     snapd_socket_path = '/run/snapd.socket'
 
@@ -126,7 +126,7 @@ class Subiquity(Application):
             print(DEBUG_SHELL_INTRO)
 
         def _after():
-            urwid.emit_signal(self, 'debug-shell-exited')
+            urwid.emit_signal(self, 'maybe-reprobe-block')
 
         self.run_command_in_foreground(
             "bash", before_hook=_before, after_hook=_after, cwd='/')
