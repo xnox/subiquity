@@ -650,6 +650,7 @@ class ZdevController(BaseController):
 
     def done(self):
         # switch to next screen
+        self.signal.emit_signal('maybe-reprobe-block')
         self.signal.emit_signal('next-screen')
 
     def chzdev(self, action, zdevinfo):
