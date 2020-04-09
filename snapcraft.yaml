@@ -1,4 +1,5 @@
 name: subiquity
+base: core18
 version: git
 summary: Ubuntu installer
 description: The Ubuntu server installer
